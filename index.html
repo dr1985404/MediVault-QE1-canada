@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MediVault Pro | MCCQE1 Elite Bank</title>
+    <style>
+        :root { --uw-navy: #003366; --uw-blue: #0077cc; --uw-light: #f8f9fa; --uw-gray: #333333; --uw-green: #28a745; --uw-red: #dc3545; }
+        body { font-family: 'Inter', -apple-system, sans-serif; background: var(--uw-light); color: var(--uw-gray); margin: 0; line-height: 1.6; user-select: none; }
+        
+        /* الهيدر الاحترافي */
+        header { background: var(--uw-navy); color: white; padding: 15px 25px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .logo { font-size: 1.4rem; font-weight: 800; letter-spacing: 1px; }
+        .progress-stat { font-size: 0.85rem; font-weight: 600; background: rgba(255,255,255,0.1); padding: 5px 15px; border-radius: 20px; }
+
+        /* شريط التحكم (UWorld Style) */
+        .control-panel { background: white; padding: 10px 20px; border-bottom: 1px solid #ddd; display: flex; gap: 10px; overflow-x: auto; position: sticky; top: 60px; z-index: 999; }
+        .filter-btn { padding: 8px 16px; border-radius: 4px; border: 1px solid #ccc; background: white; cursor: pointer; font-weight: bold; font-size: 0.85rem; white-space: nowrap; transition: 0.2s; }
+        .filter-btn.active { background: var(--uw-blue); color: white; border-color: var(--uw-blue); }
+
+        /* منطقة السؤال */
+        .main-content { max-width: 900px; margin: 30px auto; padding: 0 20px; }
+        .question-box { background: white; border-radius: 4px; border: 1px solid #e0e0e0; padding: 30px; position: relative; }
+        .q-meta { font-size: 0.75rem; color: #777; margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 10px; text-transform: uppercase; letter-spacing: 1px; }
+        .q-text { font-size: 1.15rem; font-weight: 600; margin-bottom: 25px; color: #111; }
+
+        /* الخيارات */
+        .options-container { display: flex; flex-direction: column; gap: 12px; }
+        .option { padding: 15px 20px; border: 1px solid #dcdcdc; border-radius: 4px; cursor: pointer; font-size: 1rem; font-weight: 500; transition: all 0.2s ease; display: flex; align-items: center; }
+        .option:hover { background-color: #f0f7ff; border-color: var(--uw-blue); }
+        .option.correct { background-color: #e6f4ea; border-color: var(--uw-green); color: #1e7e34; border-width: 2px; }
+        .option.wrong { background-color: #fdecea; border-color: var(--uw-red); color: #bd2130; border-width: 2px; }
+
+        /* الشرح (Rationale) */
+        .rationale-panel { display: none; margin-top: 30px; padding: 25px; background: #fdfdfd; border: 1px solid #d1d1d1; border-top: 4px solid var(--uw-navy); border-radius: 4px; animation: fadeIn 0.4s; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .rat-title { color: var(--uw-navy); font-weight: 800; margin-bottom: 10px; text-transform: uppercase; font-size: 0.9rem; }
+        
+        .footer-nav { margin-top: 20px; display: flex; justify-content: space-between; }
+        .nav-btn { background: var(--uw-navy); color: white; border: none; padding: 10px 30px; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        
+        @media (max-width: 600px) { .q-text { font-size: 1rem; } .logo { font-size: 1.1rem; } }
+    </style>
+</head>
+<body oncontextmenu="return false;">
+
+<header>
+    <div class="logo">MEDIVAULT PRO</div>
+    <div class="progress-stat">QE1 PREP MODE</div>
+</header>
+
+<div class="control-panel" id="subjects">
+    <button class="filter-btn active" onclick="loadBySubject('All')">ALL QUESTIONS</button>
+    <button class="filter-btn" onclick="loadBySubject('Ethics')">ETHICS</button>
+    <button class="filter-btn" onclick="loadBySubject('Surgery')">SURGERY</button>
+    <button class="filter-btn" onclick="loadBySubject('Medicine')">MEDICINE</button>
+</div>
+
+<div class="main-content">
+    <div id="quiz-area">
+        </div>
+</div>
+
+<script>
+    // --- بنك الأسئلة (Unlimited - أضف ما تشاء هنا) ---
+    const bank = [
+        {
+            id: "Q-1001",
+            subject: "Ethics",
+            text: "A 45-year-old patient with decision-making capacity refuses a blood transfusion due to religious reasons. The hemoglobin is 6 g/dL. What is the most appropriate next step?",
+            options: ["Obtain a court order for transfusion", "Respect the patient's refusal", "Consult the hospital's ethics committee", "Administer blood during emergency"],
+            ans: 1,
+            rationale: "In Canada, autonomy is supreme for competent adults. A patient with capacity has the right to refuse life-saving treatment."
+        },
+        {
+            id: "Q-1002",
+            subject: "Surgery",
+            text: "A patient presents with sudden severe epigastric pain. Chest X-ray shows air under the diaphragm. What is the priority management?",
+            options: ["CT scan of the abdomen", "Urgent surgical consultation", "Wait for blood cultures", "Barium swallow study"],
+            ans: 1,
+            rationale: "Air under the diaphragm (pneumoperitoneum) indicates a perforated viscus, which is a surgical emergency."
+        }
+    ];
+
+    let currentSubject = 'All';
+
+    function render() {
+        const area = document.getElementById('quiz-area');
+        area.innerHTML = '';
+        const filtered = currentSubject === 'All' ? bank : bank.filter(q => q.subject === currentSubject);
+
+        filtered.forEach((q, i) => {
+            const card = document.createElement('div');
+            card.className = 'question-box';
+            card.style.marginBottom = '40px';
+            card.innerHTML = `
+                <div class="q-meta">Question ID: ${q.id} | Subject: ${q.subject}</div>
+                <div class="q-text">${q.text}</div>
+                <div class="options-container" id="opts-${i}">
+                    ${q.options.map((o, idx) => `<div class="option" onclick="submit(${i}, ${idx}, ${q.ans})">${o}</div>`).join('')}
+                </div>
+                <div class="rationale-panel" id="rat-${i}">
+                    <div class="rat-title">Educational Objective & Rationale</div>
+                    <div>${q.rationale}</div>
+                </div>
+            `;
+            area.appendChild(card);
+        });
+    }
+
+    function submit(qIdx, sIdx, cIdx) {
+        const opts = document.querySelectorAll(`#opts-${qIdx} .option`);
+        opts.forEach((o, idx) => {
+            o.className = 'option ' + (idx === cIdx ? 'correct' : (idx === sIdx ? 'wrong' : ''));
+        });
+        document.getElementById(`rat-${qIdx}`).style.display = 'block';
+    }
+
+    function loadBySubject(sub) {
+        currentSubject = sub;
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.toggle('active', b.innerText.includes(sub.toUpperCase())));
+        render();
+    }
+
+    document.addEventListener('copy', e => e.preventDefault());
+    render();
+</script>
+
+</body>
+</html>
